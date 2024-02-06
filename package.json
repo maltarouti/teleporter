@@ -1,7 +1,7 @@
 {
   "name": "teleporter",
   "displayName": "teleporter",
-  "description": "teleport the cursor to anywhere you want",
+  "description": "teleport the mouse cursor anywhere you want",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.86.0"
