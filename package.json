@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "teleporter.helloWorld",
-        "title": "Hello World"
+        "command": "teleporter.wordTeleporter",
+        "title": "Word Teleporter"
       }
     ]
   },
