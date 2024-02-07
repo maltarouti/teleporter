@@ -6,6 +6,5 @@ export function activate(context: vscode.ExtensionContext) {
 		const wt = new WordTeleporter();
 		wt.run();
 	});
-
 	context.subscriptions.push(wordTeleporter);
 }
