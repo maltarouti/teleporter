@@ -18,7 +18,6 @@ export class WordTeleporterExtension {
         return this.activeEditor?.selection.active?.line;
     }
 
-
     getStartingword(currentLine: number): vscode.Range | undefined {
         var matchesCount = 0;
         var line = this.activeEditor?.document.lineAt(currentLine);
@@ -55,46 +54,46 @@ export class WordTeleporterExtension {
         }
         return codes;
     }
-
-    getSvgDataUri(code: string): vscode.Uri {
-        var svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8" height="22" width="22">`;
-        svg += `<rect width="22" height="22" rx="0" ry="0" style="fill: #ffffff;"></rect>`;
-        svg += `<text font-family="arial" font-size="3px" textLength="3" textAdjust="spacing" fill="#000000" x="2.4" y="4" alignment-baseline="baseline">`;
+    getSvgDataUri(code: string, fontSize: number): vscode.Uri {
+        var svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="12px" width="12px">`;
+        svg += `<rect width="12" height="12" rx="2" ry="2" style="fill: #ff0000;"></rect>`;
+        svg += `<text font-family="arial" font-size="${fontSize * 0.4}px" textLength="2" textAdjust="spacing" fill="#0000ff" x="1" y="${fontSize - 2}" alignment-baseline="baseline">`;
         svg += code;
         svg += `</text></svg>`;
-        return vscode.Uri.parse(`data:image/svg+xml;utf8,${svg}`);
+        return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
     }
 
     drawSvgDataUris(word: vscode.Range) {
         var decorations = [];
         var codes = this.getSvgCodes();
+        var fontSize = this.activeEditor?.options.tabSize as number;
 
         for (var count = 0; count < codes.length; count++) {
             var line = word.end.line;
             var character = word.end.character;
-
-            var svgDataUri = this.getSvgDataUri(codes[count]);
+            var svgDataUri = this.getSvgDataUri(codes[count], fontSize);
 
             decorations.push({
-                range: new vscode.Range(line, character, line, character + 2),
+                range: new vscode.Range(line, character, line, character + 1),
                 renderOptions: {
                     after: {
-                        contentIconPath: svgDataUri
+                        contentIconPath: svgDataUri,
+                        height: `12px`,
+                        width: `12px`,
                     },
-                    backgroundColor: "#ff0000",
                 },
             });
-            break;
         }
 
-        const decorationType = vscode.window.createTextEditorDecorationType({
-            after: {
-                margin: `0 0 0 2px`,
-                height: '22px',
-                width: `22px`,
-            }
-        });
-        vscode.window.activeTextEditor?.setDecorations(decorationType, decorations);
+        const decorationType = vscode.window.createTextEditorDecorationType(
+            {
+                after: {
+                    margin: `0 0 0 ${fontSize - 2}px`,
+                    height: `12px`,
+                    width: `${fontSize - 2}px`,
+                }
+            });
+        this.activeEditor?.setDecorations(decorationType, decorations);
     }
 
     run() {
