@@ -20,10 +20,6 @@ export class WordTeleporterExtension {
 
 
     getStartingword(currentLine: number): vscode.Range | undefined {
-        // find how many matches in the line
-        // if the matches is less than 26 * 26
-        // We will go back in liens till we reach (26 * 26) / 2
-        // We will find the word at index (26 * 26) / 2 that is in back
         var matchesCount = 0;
         var line = this.activeEditor?.document.lineAt(currentLine);
 
