@@ -156,8 +156,6 @@ export class WordTeleporterExtension {
                     var character: string | null = null;
                     const typingEventDisposable = vscode.commands.registerCommand('type', args => {
 
-                        this.window.showInformationMessage("here");
-
                         var text: string = args.text;
                         if (text.search(/[a-z]/i) === -1) {
                             return;
