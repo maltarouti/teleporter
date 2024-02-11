@@ -44,6 +44,33 @@ export class WordTeleporterExtension {
         }
     }
 
+    getNextRegexMatch(line: number, startPosition: number): vscode.Range | undefined {
+        var document = this.activeEditor?.document;
+        var lineCount = document?.lineCount;
+
+        if (lineCount) {
+            while (line < lineCount) {
+                var text = document?.lineAt(line).text;
+                if (text) {
+                    var regex = new RegExp(this.matchRegex.source, "g");
+                    regex.lastIndex = startPosition;
+                    var match = regex.exec(text);
+                    if (match) {
+                        return new vscode.Range(
+                            line,
+                            match.index,
+                            line,
+                            match.index + match[0].length
+                        );
+                    }
+                }
+                line += 1;
+                startPosition = 0;
+            }
+        }
+        return undefined;
+    }
+
     getSvgCodes() {
         var codes = [];
         for (var i = 0; i < 26; i++) {
@@ -63,14 +90,17 @@ export class WordTeleporterExtension {
         return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
     }
 
-    drawSvgDataUris(word: vscode.Range) {
+    drawSvgDataUris(startingWord: vscode.Range | undefined) {
         var decorations = [];
         var codes = this.getSvgCodes();
         var fontSize = this.activeEditor?.options.tabSize as number;
+        var count = 0;
 
-        for (var count = 0; count < codes.length; count++) {
-            var line = word.end.line;
-            var character = word.end.character;
+
+
+        while (startingWord && count !== this.maximumSizeOfMatches) {
+            var line = startingWord.end.line;
+            var character = startingWord.end.character;
             var svgDataUri = this.getSvgDataUri(codes[count], fontSize);
 
             decorations.push({
@@ -83,6 +113,15 @@ export class WordTeleporterExtension {
                     },
                 },
             });
+
+            var nextMatch = this.getNextRegexMatch(line, character + 1);
+            if (nextMatch) {
+                startingWord = nextMatch;
+            }
+            else {
+                startingWord = undefined;
+            }
+            count += 1;
         }
 
         const decorationType = vscode.window.createTextEditorDecorationType(
