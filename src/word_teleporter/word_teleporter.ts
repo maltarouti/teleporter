@@ -92,7 +92,7 @@ export class WordTeleporterExtension {
         return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
     }
 
-    drawSvgDataUris(startingWord: vscode.Range | undefined) {
+    drawSvgDataUris(startingWord: vscode.Range | undefined): vscode.TextEditorDecorationType {
         var decorations = [];
         var codes = this.getSvgCodes();
         var count = 0;
@@ -120,9 +120,14 @@ export class WordTeleporterExtension {
             }
             count += 1;
         }
-
         const decorationType = vscode.window.createTextEditorDecorationType({});
         this.activeEditor?.setDecorations(decorationType, decorations);
+
+        return decorationType;
+    }
+
+    undrawSvgDataUris(decorationType: vscode.TextEditorDecorationType): undefined {
+        this.activeEditor?.setDecorations(decorationType, []);
     }
 
     run() {
@@ -138,8 +143,9 @@ export class WordTeleporterExtension {
 
                 // 3. draw
                 if (startingWord) {
-                    this.drawSvgDataUris(startingWord);
+                    var decorationType = this.drawSvgDataUris(startingWord);
                 }
+
 
                 // 3. We will stop editing mode
                 // var character: string | null = null;
