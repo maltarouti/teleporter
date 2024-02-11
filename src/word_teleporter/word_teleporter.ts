@@ -38,7 +38,7 @@ export class WordTeleporterExtension {
         var firstWord = line?.text.search(this.matchRegex);
         // to be completed later
 
-        if (typeof firstWord !== 'undefined') {
+        if (typeof firstWord !== 'undefined' && firstWord !== -1) {
             return this.activeEditor?.document.getWordRangeAtPosition(
                 new vscode.Position(currentLine, firstWord));
         }
