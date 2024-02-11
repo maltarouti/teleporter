@@ -103,7 +103,7 @@ export class WordTeleporterExtension {
             var svgDataUri = this.getSvgDataUri(codes[count]);
 
             decorations.push({
-                range: new vscode.Range(line, character, line, character + 1),
+                range: new vscode.Range(line, character, line, character),
                 renderOptions: {
                     after: {
                         contentIconPath: svgDataUri
@@ -144,33 +144,30 @@ export class WordTeleporterExtension {
                 // 3. draw
                 if (startingWord) {
                     var decorationType = this.drawSvgDataUris(startingWord);
+
+                    // 3. We will stop editing mode
+                    var character: string | null = null;
+                    const typingEventDisposable = vscode.commands.registerCommand('type', args => {
+                        var text: string = args.text;
+
+                        if (text.search(/[a-z]/i) === -1) {
+                            return;
+                        }
+
+                        if (!character) {
+                            character = text;
+                            return;
+                        }
+
+                        var code = character + text;
+
+                        // move the cursor
+
+
+                        this.undrawSvgDataUris(decorationType);
+                        typingEventDisposable.dispose();
+                    });
                 }
-
-
-                // 3. We will stop editing mode
-                // var character: string | null = null;
-                // const typingEventDisposable = vscode.commands.registerCommand('type', args => {
-
-                //     vscode.commands.executeCommand('default:type', args);
-
-
-                // 11. We will listen to the two character code from user
-                // var text: string = args.text;
-                // if (text.search(/[a-z]/i) === -1) {
-                //     return;
-                // }
-
-                // if (!character) {
-                //     character = text;
-                //     return;
-                // }
-
-
-                // 12. We will move the mouse to the place
-                // 13. We will remove all decorations
-
-                //     typingEventDisposable.dispose();
-                // });
             }
         }
     }
