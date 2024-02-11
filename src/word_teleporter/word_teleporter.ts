@@ -92,15 +92,18 @@ export class WordTeleporterExtension {
         return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
     }
 
-    drawSvgDataUris(startingWord: vscode.Range | undefined): vscode.TextEditorDecorationType {
+    drawSvgDataUris(startingWord: vscode.Range | undefined): [vscode.TextEditorDecorationType, { [key: string]: any }] {
+        var positions: { [key: string]: any } = {};
         var decorations = [];
         var codes = this.getSvgCodes();
         var count = 0;
 
+
         while (startingWord && count !== this.maximumSizeOfMatches) {
             var line = startingWord.end.line;
             var character = startingWord.end.character;
-            var svgDataUri = this.getSvgDataUri(codes[count]);
+            var code = codes[count];
+            var svgDataUri = this.getSvgDataUri(code);
 
             decorations.push({
                 range: new vscode.Range(line, character, line, character),
@@ -110,6 +113,8 @@ export class WordTeleporterExtension {
                     },
                 },
             });
+
+            positions[code] = [line, character];
 
             var nextMatch = this.getNextRegexMatch(line, character + 1);
             if (nextMatch) {
@@ -123,7 +128,7 @@ export class WordTeleporterExtension {
         const decorationType = vscode.window.createTextEditorDecorationType({});
         this.activeEditor?.setDecorations(decorationType, decorations);
 
-        return decorationType;
+        return [decorationType, positions];
     }
 
     undrawSvgDataUris(decorationType: vscode.TextEditorDecorationType): undefined {
@@ -143,13 +148,17 @@ export class WordTeleporterExtension {
 
                 // 3. draw
                 if (startingWord) {
-                    var decorationType = this.drawSvgDataUris(startingWord);
+                    var result = this.drawSvgDataUris(startingWord);
+                    var decorationType = result[0];
+                    var positions = result[1];
 
                     // 3. We will stop editing mode
                     var character: string | null = null;
                     const typingEventDisposable = vscode.commands.registerCommand('type', args => {
-                        var text: string = args.text;
 
+                        this.window.showInformationMessage("here");
+
+                        var text: string = args.text;
                         if (text.search(/[a-z]/i) === -1) {
                             return;
                         }
@@ -160,9 +169,14 @@ export class WordTeleporterExtension {
                         }
 
                         var code = character + text;
-
-                        // move the cursor
-
+                        activeEditor.selection = new vscode.Selection(
+                            positions[code][0],
+                            positions[code][1],
+                            positions[code][0],
+                            positions[code][1],
+                        );
+                        const reviewType: vscode.TextEditorRevealType = vscode.TextEditorRevealType.Default;
+                        activeEditor.revealRange(activeEditor.selection, reviewType);
 
                         this.undrawSvgDataUris(decorationType);
                         typingEventDisposable.dispose();
