@@ -81,10 +81,12 @@ export class WordTeleporterExtension {
         }
         return codes;
     }
-    getSvgDataUri(code: string, fontSize: number): vscode.Uri {
-        var svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="12px" width="12px">`;
-        svg += `<rect width="12" height="12" rx="2" ry="2" style="fill: #ff0000;"></rect>`;
-        svg += `<text font-family="arial" font-size="${fontSize * 0.4}px" textLength="2" textAdjust="spacing" fill="#0000ff" x="1" y="${fontSize - 2}" alignment-baseline="baseline">`;
+    getSvgDataUri(code: string): vscode.Uri {
+        var fontSize = this.activeEditor?.options.tabSize as number;
+        const configuration = vscode.workspace.getConfiguration('editor');
+        var svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="15px" width="15px">`;
+        svg += `<rect width="15" height="15" rx="2" ry="2" style="fill: #ffffff;"></rect>`;
+        svg += `<text font-family="arial"  font-size="${fontSize * 2}px" textLength="${fontSize * 2}" textAdjust="spacing" fill="#000000" x="2" y="${fontSize * 2}" alignment-baseline="baseline">`;
         svg += code;
         svg += `</text></svg>`;
         return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
@@ -93,23 +95,18 @@ export class WordTeleporterExtension {
     drawSvgDataUris(startingWord: vscode.Range | undefined) {
         var decorations = [];
         var codes = this.getSvgCodes();
-        var fontSize = this.activeEditor?.options.tabSize as number;
         var count = 0;
-
-
 
         while (startingWord && count !== this.maximumSizeOfMatches) {
             var line = startingWord.end.line;
             var character = startingWord.end.character;
-            var svgDataUri = this.getSvgDataUri(codes[count], fontSize);
+            var svgDataUri = this.getSvgDataUri(codes[count]);
 
             decorations.push({
                 range: new vscode.Range(line, character, line, character + 1),
                 renderOptions: {
                     after: {
-                        contentIconPath: svgDataUri,
-                        height: `12px`,
-                        width: `12px`,
+                        contentIconPath: svgDataUri
                     },
                 },
             });
@@ -124,14 +121,7 @@ export class WordTeleporterExtension {
             count += 1;
         }
 
-        const decorationType = vscode.window.createTextEditorDecorationType(
-            {
-                after: {
-                    margin: `0 0 0 ${fontSize - 2}px`,
-                    height: `12px`,
-                    width: `${fontSize - 2}px`,
-                }
-            });
+        const decorationType = vscode.window.createTextEditorDecorationType({});
         this.activeEditor?.setDecorations(decorationType, decorations);
     }
 
