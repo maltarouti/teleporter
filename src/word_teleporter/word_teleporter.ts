@@ -11,24 +11,45 @@ export class WordTeleporterExtension {
     }
 
     getStartingword(currentLine: number): vscode.Range | undefined {
-        var matchesCount = 0;
         var line = this.activeEditor?.document.lineAt(currentLine);
 
-        // Find the line
-        while (currentLine !== 0 && matchesCount < this.maximumSizeOfMatches / 2) {
+        // Keep going back till we have enough matches
+        var matchesCount = 0;
+        while (currentLine >= 0 && matchesCount < this.maximumSizeOfMatches / 2) {
             var words = line?.text.match(this.matchRegex);
-            matchesCount += words ? words.length : 0;
-            currentLine -= 1;
+            var wordsCount = words ? words.length : 0;
+            if (matchesCount + wordsCount > this.maximumSizeOfMatches / 2) {
+                break;
+            }
+            matchesCount += wordsCount;
             line = this.activeEditor?.document.lineAt(currentLine);
+
+            if (currentLine) {
+                currentLine -= 1;
+            }
         }
 
-        // Find the character
-        var wordIndex = matchesCount < this.maximumSizeOfMatches ?
-            0 : matchesCount - this.maximumSizeOfMatches;
 
-        // to be completed later
-        var firstWord = line?.text.search(this.matchRegex);
-        // to be completed later
+        if (matchesCount === this.maximumSizeOfMatches / 2) {
+            var firstWord = line?.text.search(this.matchRegex);
+        } else {
+            if (currentLine) {
+                currentLine -= 1;
+            }
+            line = this.activeEditor?.document.lineAt(currentLine);
+            var currentLineMatches = words ? words.length : 0;
+            var regex = RegExp(this.matchRegex, "g");
+
+            let match;
+            var current = 0;
+            if (line) {
+                while (current !== ((currentLineMatches + matchesCount) - (this.maximumSizeOfMatches / 2))
+                    && (match = regex.exec(line?.text)) !== null) {
+                    current += 1;
+                }
+                firstWord = match?.index;
+            }
+        }
 
         if (typeof firstWord !== 'undefined' && firstWord !== -1) {
             return this.activeEditor?.document.getWordRangeAtPosition(
@@ -36,7 +57,9 @@ export class WordTeleporterExtension {
         }
     }
 
-    getNextRegexMatch(line: number, startPosition: number): vscode.Range | undefined {
+    getNextRegexMatch(line: number, startPosition: number):
+        vscode.Range | undefined {
+
         var document = this.activeEditor?.document;
         var lineCount = document?.lineCount;
 
@@ -73,6 +96,7 @@ export class WordTeleporterExtension {
         }
         return codes;
     }
+
     getSvgDataUri(code: string): vscode.Uri {
         var fontSize = this.activeEditor?.options.tabSize as number;
         const configuration = vscode.workspace.getConfiguration('editor');
@@ -83,7 +107,11 @@ export class WordTeleporterExtension {
         return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
     }
 
-    drawSvgDataUris(startingWord: vscode.Range | undefined): [vscode.TextEditorDecorationType, { [key: string]: any }] {
+    drawSvgDataUris(startingWord: vscode.Range | undefined):
+        [vscode.TextEditorDecorationType, {
+            [key: string]: any
+        }] {
+
         var positions: { [key: string]: any } = {};
         var decorations = [];
         var codes = this.getSvgCodes();
@@ -142,7 +170,7 @@ export class WordTeleporterExtension {
                     var decorationType = result[0];
                     var positions = result[1];
 
-                    // 3. We will stop editing mode
+                    // 3. Listen to the user
                     var character: string | null = null;
                     const typingEventDisposable = vscode.commands.registerCommand('type', args => {
 
