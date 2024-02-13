@@ -2,89 +2,9 @@ import * as vscode from 'vscode';
 
 export class WordTeleporterExtension {
     window = vscode.window;
-    activeEditor = this.window.activeTextEditor;
-    matchRegex = /[a-zA-Z0-9]{2,}/g;
+    matchRegex = RegExp(/[a-zA-Z0-9]{2,}/, "g");
     maximumSizeOfMatches = 26 * 26;
-
-    getCurrentLine(): number | undefined {
-        return this.activeEditor?.selection.active?.line;
-    }
-
-    getStartingword(currentLine: number): vscode.Range | undefined {
-        var line = this.activeEditor?.document.lineAt(currentLine);
-
-        // Keep going back till we have enough matches
-        var matchesCount = 0;
-        while (currentLine >= 0 && matchesCount < this.maximumSizeOfMatches / 2) {
-            var words = line?.text.match(this.matchRegex);
-            var wordsCount = words ? words.length : 0;
-            if (matchesCount + wordsCount > this.maximumSizeOfMatches / 2) {
-                break;
-            }
-            matchesCount += wordsCount;
-            line = this.activeEditor?.document.lineAt(currentLine);
-
-            if (currentLine) {
-                currentLine -= 1;
-            }
-        }
-
-
-        if (matchesCount === this.maximumSizeOfMatches / 2) {
-            var firstWord = line?.text.search(this.matchRegex);
-        } else {
-            if (currentLine) {
-                currentLine -= 1;
-            }
-            line = this.activeEditor?.document.lineAt(currentLine);
-            var currentLineMatches = words ? words.length : 0;
-            var regex = RegExp(this.matchRegex, "g");
-
-            let match;
-            var current = 0;
-            if (line) {
-                while (current !== ((currentLineMatches + matchesCount) - (this.maximumSizeOfMatches / 2))
-                    && (match = regex.exec(line?.text)) !== null) {
-                    current += 1;
-                }
-                firstWord = match?.index;
-            }
-        }
-
-        if (typeof firstWord !== 'undefined' && firstWord !== -1) {
-            return this.activeEditor?.document.getWordRangeAtPosition(
-                new vscode.Position(currentLine, firstWord));
-        }
-    }
-
-    getNextRegexMatch(line: number, startPosition: number):
-        vscode.Range | undefined {
-
-        var document = this.activeEditor?.document;
-        var lineCount = document?.lineCount;
-
-        if (lineCount) {
-            while (line < lineCount) {
-                var text = document?.lineAt(line).text;
-                if (text) {
-                    var regex = new RegExp(this.matchRegex.source, "g");
-                    regex.lastIndex = startPosition;
-                    var match = regex.exec(text);
-                    if (match) {
-                        return new vscode.Range(
-                            line,
-                            match.index,
-                            line,
-                            match.index + match[0].length
-                        );
-                    }
-                }
-                line += 1;
-                startPosition = 0;
-            }
-        }
-        return undefined;
-    }
+    isModeOn = false;
 
     getSvgCodes() {
         var codes = [];
@@ -98,7 +18,7 @@ export class WordTeleporterExtension {
     }
 
     getSvgDataUri(code: string): vscode.Uri {
-        var fontSize = this.activeEditor?.options.tabSize as number;
+        var fontSize = this.window.activeTextEditor?.options.tabSize as number;
         const configuration = vscode.workspace.getConfiguration('editor');
         var svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="15px" width="15px">`;
         svg += `<rect width="15" height="15" rx="2" ry="2" style="fill: #ffffff;"></rect>`;
@@ -107,97 +27,105 @@ export class WordTeleporterExtension {
         return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
     }
 
-    drawSvgDataUris(startingWord: vscode.Range | undefined):
-        [vscode.TextEditorDecorationType, {
-            [key: string]: any
-        }] {
+    decorateLine(lineNumber: number,
+        svgDecorations: object[],
+        positions: { [key: string]: any } = {},
+        svgCodes: string[]): undefined {
 
-        var positions: { [key: string]: any } = {};
-        var decorations = [];
-        var codes = this.getSvgCodes();
-        var count = 0;
-
-        while (startingWord && count !== this.maximumSizeOfMatches) {
-            var line = startingWord.end.line;
-            var character = startingWord.end.character;
-            var code = codes[count];
-            var svgDataUri = this.getSvgDataUri(code);
-
-            decorations.push({
-                range: new vscode.Range(line, character, line, character),
-                renderOptions: {
-                    after: {
-                        contentIconPath: svgDataUri
+        var line = this.window.activeTextEditor?.document.lineAt(lineNumber);
+        let word;
+        if (line) {
+            while ((word = this.matchRegex.exec(line?.text)) !== null) {
+                var wordLastIndex = word.index + word[0].length;
+                var code = svgCodes[svgCodes.length - 1];
+                svgCodes.pop();
+                svgDecorations.push({
+                    range: new vscode.Range(lineNumber, wordLastIndex, lineNumber, wordLastIndex),
+                    renderOptions: {
+                        after: {
+                            contentIconPath: this.getSvgDataUri(code)
+                        },
                     },
-                },
-            });
-
-            positions[code] = [line, character];
-
-            var nextMatch = this.getNextRegexMatch(line, character + 1);
-            if (nextMatch) {
-                startingWord = nextMatch;
+                });
+                positions[code] = [lineNumber, wordLastIndex];
             }
-            else {
-                startingWord = undefined;
-            }
-            count += 1;
         }
-        const decorationType = vscode.window.createTextEditorDecorationType({});
-        this.activeEditor?.setDecorations(decorationType, decorations);
-
-        return [decorationType, positions];
-    }
-
-    undrawSvgDataUris(decorationType: vscode.TextEditorDecorationType): undefined {
-        this.activeEditor?.setDecorations(decorationType, []);
     }
 
     run() {
+        if (this.isModeOn) {
+            return;
+        }
+
         const activeEditor = this.window.activeTextEditor;
-
         if (activeEditor) {
-            // 1. get the current line
-            var currentLine = this.getCurrentLine();
+            this.isModeOn = true;
+            var currentLine = activeEditor?.selection.active?.line;
+            var svgCodes = this.getSvgCodes();
+            var svgDecorations: any[] = [];
+            var positions: { [key: string]: any } = {};
+            var decorationType = vscode.window.createTextEditorDecorationType({});
 
-            // 2. find starting word
-            if (typeof currentLine !== 'undefined') {
-                var startingWord = this.getStartingword(currentLine);
+            // decorate current line
+            this.decorateLine(currentLine, svgDecorations, positions, svgCodes);
 
-                // 3. draw
-                if (startingWord) {
-                    var result = this.drawSvgDataUris(startingWord);
-                    var decorationType = result[0];
-                    var positions = result[1];
-
-                    // 3. Listen to the user
-                    var character: string | null = null;
-                    const typingEventDisposable = vscode.commands.registerCommand('type', args => {
-
-                        var text: string = args.text;
-                        if (text.search(/[a-z]/i) === -1) {
-                            return;
-                        }
-
-                        if (!character) {
-                            character = text;
-                            return;
-                        }
-
-                        var code = character + text;
-                        activeEditor.selection = new vscode.Selection(
-                            positions[code][0],
-                            positions[code][1],
-                            positions[code][0],
-                            positions[code][1],
-                        );
-                        const reviewType: vscode.TextEditorRevealType = vscode.TextEditorRevealType.Default;
-                        activeEditor.revealRange(activeEditor.selection, reviewType);
-
-                        this.undrawSvgDataUris(decorationType);
-                        typingEventDisposable.dispose();
-                    });
+            var aboveLineIndex = currentLine;
+            var bellowLineIndex = currentLine;
+            while (aboveLineIndex - 1 >= 0 || bellowLineIndex < activeEditor.document.lineCount - 1) {
+                // above lines
+                if (svgDecorations.length !== this.maximumSizeOfMatches) {
+                    if (aboveLineIndex - 1 >= 0) {
+                        aboveLineIndex -= 1;
+                        this.decorateLine(aboveLineIndex, svgDecorations, positions, svgCodes);
+                    }
                 }
+                else {
+                    break;
+                }
+
+                // bottom lines
+                if (svgDecorations.length !== this.maximumSizeOfMatches) {
+                    if (bellowLineIndex < activeEditor.document.lineCount - 1) {
+                        bellowLineIndex += 1;
+                        this.decorateLine(bellowLineIndex, svgDecorations, positions, svgCodes);
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+
+            // listen to the user input
+            if (svgDecorations.length) {
+                activeEditor.setDecorations(decorationType, svgDecorations);
+                var character: string | null = null;
+                const typingEventDisposable = vscode.commands.registerCommand('type', args => {
+
+                    var text: string = args.text;
+                    if (text.search(/[a-z]/i) === -1) {
+                        return;
+                    }
+
+                    if (!character) {
+                        character = text;
+                        return;
+                    }
+
+                    var code = character + text;
+
+                    activeEditor.selection = new vscode.Selection(
+                        positions[code][0],
+                        positions[code][1],
+                        positions[code][0],
+                        positions[code][1],
+                    );
+
+                    const reviewType: vscode.TextEditorRevealType = vscode.TextEditorRevealType.Default;
+                    activeEditor.revealRange(activeEditor.selection, reviewType);
+                    activeEditor.setDecorations(decorationType, []);
+                    typingEventDisposable.dispose();
+                    this.isModeOn = false;
+                });
             }
         }
     }
