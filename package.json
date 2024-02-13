@@ -16,6 +16,10 @@
       {
         "command": "teleporter.wordTeleporter",
         "title": "Word Teleporter"
+      },
+      {
+        "command": "teleporter.lineTeleporter",
+        "title": "Line Teleporter"
       }
     ]
   },

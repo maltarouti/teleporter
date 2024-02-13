@@ -1,31 +1,11 @@
 import * as vscode from 'vscode';
+import { getSvgCodes, getSvgDataUri } from '../utils/svgGenerator';
 
 export class WordTeleporterExtension {
     window = vscode.window;
     matchRegex = RegExp(/[a-zA-Z0-9]{2,}/, "g");
     maximumSizeOfMatches = 26 * 26;
     isModeOn = false;
-
-    getSvgCodes() {
-        var codes = [];
-        for (var i = 0; i < 26; i++) {
-            for (var j = 0; j < 26; j++) {
-                var code = String.fromCharCode(97 + i) + String.fromCharCode(97 + j);
-                codes.push(code);
-            }
-        }
-        return codes;
-    }
-
-    getSvgDataUri(code: string): vscode.Uri {
-        var fontSize = this.window.activeTextEditor?.options.tabSize as number;
-        const configuration = vscode.workspace.getConfiguration('editor');
-        var svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="15px" width="15px">`;
-        svg += `<rect width="15" height="15" rx="2" ry="2" style="fill: #ffffff;"></rect>`;
-        svg += `<text font-family="arial" font-size="${fontSize * 2}px" textLength="${fontSize * 2}" textAdjust="spacing" fill="#000000" x="2" y="${fontSize * 2}" alignment-baseline="baseline">`;
-        svg += `${code}</text></svg>`;
-        return vscode.Uri.parse(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
-    }
 
     decorateLine(lineNumber: number,
         svgDecorations: object[],
@@ -43,7 +23,7 @@ export class WordTeleporterExtension {
                     range: new vscode.Range(lineNumber, wordLastIndex, lineNumber, wordLastIndex),
                     renderOptions: {
                         after: {
-                            contentIconPath: this.getSvgDataUri(code)
+                            contentIconPath: getSvgDataUri(code)
                         },
                     },
                 });
@@ -53,15 +33,13 @@ export class WordTeleporterExtension {
     }
 
     run() {
-        if (this.isModeOn) {
-            return;
-        }
-
         const activeEditor = this.window.activeTextEditor;
         if (activeEditor) {
             this.isModeOn = true;
             var currentLine = activeEditor?.selection.active?.line;
-            var svgCodes = this.getSvgCodes();
+
+            // decoration data
+            var svgCodes = getSvgCodes();
             var svgDecorations: any[] = [];
             var positions: { [key: string]: any } = {};
             var decorationType = vscode.window.createTextEditorDecorationType({});
@@ -69,12 +47,15 @@ export class WordTeleporterExtension {
             // decorate current line
             this.decorateLine(currentLine, svgDecorations, positions, svgCodes);
 
+            // start decorating lines around the current
+            var minLines = 0;
+            var maxLines = activeEditor.document.lineCount - 1;
             var aboveLineIndex = currentLine;
             var bellowLineIndex = currentLine;
-            while (aboveLineIndex - 1 >= 0 || bellowLineIndex < activeEditor.document.lineCount - 1) {
+            while (aboveLineIndex - 1 >= minLines || bellowLineIndex < maxLines) {
                 // above lines
                 if (svgDecorations.length !== this.maximumSizeOfMatches) {
-                    if (aboveLineIndex - 1 >= 0) {
+                    if (aboveLineIndex - 1 >= minLines) {
                         aboveLineIndex -= 1;
                         this.decorateLine(aboveLineIndex, svgDecorations, positions, svgCodes);
                     }
@@ -85,7 +66,7 @@ export class WordTeleporterExtension {
 
                 // bottom lines
                 if (svgDecorations.length !== this.maximumSizeOfMatches) {
-                    if (bellowLineIndex < activeEditor.document.lineCount - 1) {
+                    if (bellowLineIndex < maxLines) {
                         bellowLineIndex += 1;
                         this.decorateLine(bellowLineIndex, svgDecorations, positions, svgCodes);
                     }
@@ -113,15 +94,18 @@ export class WordTeleporterExtension {
 
                     var code = character + text;
 
-                    activeEditor.selection = new vscode.Selection(
-                        positions[code][0],
-                        positions[code][1],
-                        positions[code][0],
-                        positions[code][1],
-                    );
+                    if (code in positions) {
+                        activeEditor.selection = new vscode.Selection(
+                            positions[code][0],
+                            positions[code][1],
+                            positions[code][0],
+                            positions[code][1],
+                        );
 
-                    const reviewType: vscode.TextEditorRevealType = vscode.TextEditorRevealType.Default;
-                    activeEditor.revealRange(activeEditor.selection, reviewType);
+                        const reviewType: vscode.TextEditorRevealType = vscode.TextEditorRevealType.Default;
+                        activeEditor.revealRange(activeEditor.selection, reviewType);
+                    }
+
                     activeEditor.setDecorations(decorationType, []);
                     typingEventDisposable.dispose();
                     this.isModeOn = false;
