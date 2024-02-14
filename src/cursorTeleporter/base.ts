@@ -6,37 +6,38 @@ export class Base {
     maximumSizeOfMatches = 26 * 26;
     isModeOn = false;
 
-    decorate(lineNumber: number,
+    async decorate(lineNumber: number,
         svgDecorations: object[],
         positions: { [key: string]: any } = {},
-        svgCodes: string[]): undefined { }
+        svgCodes: Promise<string>[]): Promise<undefined> { }
 
-    getSvgCodes() {
-        var codes = [];
+    async getSvgCodes(): Promise<string[]> {
+        var codes: Promise<string>[] = [];
         for (var i = 0; i < 26; i++) {
             for (var j = 0; j < 26; j++) {
                 var code = String.fromCharCode(122 - i) + String.fromCharCode(122 - j);
-                codes.push(code);
+                codes.push(Promise.resolve(code));
             }
         }
-        return codes;
+        return Promise.all(codes);
     }
 
-
-    run() {
+    async run() {
         const activeEditor = this.window.activeTextEditor;
         if (activeEditor) {
             this.isModeOn = true;
             var currentLine = activeEditor?.selection.active?.line;
 
             // decoration data
-            var svgCodes = this.getSvgCodes();
+            var svgCodes = await this.getSvgCodes();
+            var svgPromises: Promise<string>[] = svgCodes.map(code => Promise.resolve(code));
+
             var svgDecorations: any[] = [];
             var positions: { [key: string]: any } = {};
             var decorationType = vscode.window.createTextEditorDecorationType({});
 
             // decorate current line
-            this.decorate(currentLine, svgDecorations, positions, svgCodes);
+            await this.decorate(currentLine, svgDecorations, positions, svgPromises);
 
             // start decorating lines around the current
             var minLines = 0;
@@ -48,7 +49,7 @@ export class Base {
                 if (svgDecorations.length <= this.maximumSizeOfMatches) {
                     if (aboveLineIndex - 1 >= minLines) {
                         aboveLineIndex -= 1;
-                        this.decorate(aboveLineIndex, svgDecorations, positions, svgCodes);
+                        await this.decorate(aboveLineIndex, svgDecorations, positions, svgPromises);
                     }
                 }
                 else {
@@ -59,7 +60,7 @@ export class Base {
                 if (svgDecorations.length <= this.maximumSizeOfMatches) {
                     if (bellowLineIndex < maxLines) {
                         bellowLineIndex += 1;
-                        this.decorate(bellowLineIndex, svgDecorations, positions, svgCodes);
+                        await this.decorate(bellowLineIndex, svgDecorations, positions, svgPromises);
                     }
                 }
                 else {

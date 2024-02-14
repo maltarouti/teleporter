@@ -7,14 +7,14 @@ export class LineTeleporterExtension extends Base {
     maximumSizeOfMatches = 26 * 26;
     isModeOn = false;
 
-    decorate(lineNumber: number,
+    async decorate(lineNumber: number,
         svgDecorations: object[],
         positions: { [key: string]: any } = {},
-        svgCodes: string[]): undefined {
+        svgCodes: Promise<string>[]): Promise<undefined> {
 
         var line = this.window.activeTextEditor?.document.lineAt(lineNumber);
         if (line) {
-            var code = svgCodes[svgCodes.length - 1];
+            var code = await svgCodes[svgCodes.length - 1];
             svgCodes.pop();
             svgDecorations.push({
                 range: new vscode.Range(lineNumber, 0, lineNumber, 0),
