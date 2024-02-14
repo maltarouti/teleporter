@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { WordTeleporterExtension as WordTeleporter } from './teleporter/word_teleporter';
-import { LineTeleporterExtension as LineTeleporter } from './teleporter/line_teleporter';
+import { WordTeleporterExtension as WordTeleporter } from './cursorTeleporter/wordTeleporter';
+import { LineTeleporterExtension as LineTeleporter } from './cursorTeleporter/lineTeleporter';
 
 export function activate(context: vscode.ExtensionContext) {
 	const wt = new WordTeleporter();

@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
-import { Runner } from './runner';
-import { getSvgDataUri } from '../utils/svgGenerator';
+import { Base } from './base';
 
-export class LineTeleporterExtension extends Runner {
+
+export class LineTeleporterExtension extends Base {
     window = vscode.window;
     maximumSizeOfMatches = 26 * 26;
     isModeOn = false;
 
-    decorateLine(lineNumber: number,
+    decorate(lineNumber: number,
         svgDecorations: object[],
         positions: { [key: string]: any } = {},
         svgCodes: string[]): undefined {
@@ -20,7 +20,10 @@ export class LineTeleporterExtension extends Runner {
                 range: new vscode.Range(lineNumber, 0, lineNumber, 0),
                 renderOptions: {
                     after: {
-                        contentIconPath: getSvgDataUri(code)
+                        contentText: code,
+                        color: '#000000',
+                        backgroundColor: '#FFFFFF',
+                        fontWeight: 'bold',
                     },
                 },
             });

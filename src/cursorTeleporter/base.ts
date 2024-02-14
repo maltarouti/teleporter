@@ -1,16 +1,27 @@
 import * as vscode from 'vscode';
-import { getSvgCodes } from '../utils/svgGenerator';
 
 
-export class Runner {
+export class Base {
     window = vscode.window;
     maximumSizeOfMatches = 26 * 26;
     isModeOn = false;
 
-    decorateLine(lineNumber: number,
+    decorate(lineNumber: number,
         svgDecorations: object[],
         positions: { [key: string]: any } = {},
-        svgCodes: string[]): undefined {}
+        svgCodes: string[]): undefined { }
+
+    getSvgCodes() {
+        var codes = [];
+        for (var i = 0; i < 26; i++) {
+            for (var j = 0; j < 26; j++) {
+                var code = String.fromCharCode(122 - i) + String.fromCharCode(122 - j);
+                codes.push(code);
+            }
+        }
+        return codes;
+    }
+
 
     run() {
         const activeEditor = this.window.activeTextEditor;
@@ -19,13 +30,13 @@ export class Runner {
             var currentLine = activeEditor?.selection.active?.line;
 
             // decoration data
-            var svgCodes = getSvgCodes();
+            var svgCodes = this.getSvgCodes();
             var svgDecorations: any[] = [];
             var positions: { [key: string]: any } = {};
             var decorationType = vscode.window.createTextEditorDecorationType({});
 
             // decorate current line
-            this.decorateLine(currentLine, svgDecorations, positions, svgCodes);
+            this.decorate(currentLine, svgDecorations, positions, svgCodes);
 
             // start decorating lines around the current
             var minLines = 0;
@@ -37,7 +48,7 @@ export class Runner {
                 if (svgDecorations.length <= this.maximumSizeOfMatches) {
                     if (aboveLineIndex - 1 >= minLines) {
                         aboveLineIndex -= 1;
-                        this.decorateLine(aboveLineIndex, svgDecorations, positions, svgCodes);
+                        this.decorate(aboveLineIndex, svgDecorations, positions, svgCodes);
                     }
                 }
                 else {
@@ -48,7 +59,7 @@ export class Runner {
                 if (svgDecorations.length <= this.maximumSizeOfMatches) {
                     if (bellowLineIndex < maxLines) {
                         bellowLineIndex += 1;
-                        this.decorateLine(bellowLineIndex, svgDecorations, positions, svgCodes);
+                        this.decorate(bellowLineIndex, svgDecorations, positions, svgCodes);
                     }
                 }
                 else {
@@ -73,7 +84,6 @@ export class Runner {
                     }
 
                     var code = character + text;
-
                     if (code in positions) {
                         activeEditor.selection = new vscode.Selection(
                             positions[code][0],
