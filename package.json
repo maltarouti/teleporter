@@ -12,6 +12,71 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "teleporter",
+      "properties": {
+        "teleporter.wordMatchRegex": {
+          "type": "string",
+          "default": "[a-zA-Z0-9]{2,}",
+          "description": "Regex of word match"
+        },
+        "teleporter.hintColor": {
+          "type": "string",
+          "default": "#000000",
+          "description": "Color of text hint"
+        },
+        "teleporter.hintBackgroundColor": {
+          "type": "string",
+          "default": "#FFFFFF",
+          "description": "Background color of text hint"
+        },
+        "teleporter.hintFontweight": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "bold"
+          ],
+          "default": "bold",
+          "description": "Font weight of text hint"
+        },
+        "teleporter.hintBorderStyle": {
+          "type": "string",
+          "enum": [
+            "none",
+            "dotted",
+            "dashed",
+            "solid",
+            "double",
+            "groove",
+            "ridge",
+            "inset",
+            "outset"
+          ],
+          "default": "none",
+          "description": "Border style of text hint"
+        },
+        "teleporter.hintBorderColor": {
+          "type": "string",
+          "default": "#FFFFFF",
+          "description": "Border color of text hint"
+        },
+        "teleporter.hintBorderRadius": {
+          "type": "string",
+          "default": "1px",
+          "description": "Border radius of text hint in pixels"
+        },
+        "teleporter.hintFontStyle": {
+          "type": "string",
+          "default": "",
+          "description": "Font style of text hint"
+        },
+        "teleporter.hintOpacity": {
+          "type": "string",
+          "default": "1",
+          "description": "Opacity of text hint from 0 to 1"
+        }
+      }
+    },
     "commands": [
       {
         "command": "teleporter.wordTeleporter",

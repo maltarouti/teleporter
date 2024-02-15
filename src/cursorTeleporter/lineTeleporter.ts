@@ -12,6 +12,7 @@ export class LineTeleporterExtension extends Base {
         positions: { [key: string]: any } = {},
         svgCodes: Promise<string>[]): Promise<undefined> {
 
+        const config = vscode.workspace.getConfiguration('teleporter');
         var line = this.window.activeTextEditor?.document.lineAt(lineNumber);
         if (line) {
             var code = await svgCodes[svgCodes.length - 1];
@@ -21,9 +22,14 @@ export class LineTeleporterExtension extends Base {
                 renderOptions: {
                     after: {
                         contentText: code,
-                        color: '#000000',
-                        backgroundColor: '#FFFFFF',
-                        fontWeight: 'bold',
+                        color: config.get("hintColor"),
+                        backgroundColor: config.get("hintBackgroundColor"),
+                        fontWeight: config.get("hintFontweight"),
+                        borderStyle: config.get("hintBorderStyle"),
+                        borderColor: config.get("hintBorderColor"),
+                        borderRadius: config.get("hintBorderRadius"),
+                        fontStyle: config.get("hintFontStyle"),
+                        opacity: config.get("hintOpacity")
                     },
                 },
             });

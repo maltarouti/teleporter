@@ -3,7 +3,6 @@ import { Base } from './base';
 
 export class WordTeleporterExtension extends Base {
     window = vscode.window;
-    matchRegex = RegExp(/[a-zA-Z0-9]{2,}/, 'g');
 
     async decorate(
         lineNumber: number,
@@ -12,10 +11,13 @@ export class WordTeleporterExtension extends Base {
         svgCodes: Promise<string>[]
     ): Promise<undefined> {
 
+        const config = vscode.workspace.getConfiguration('teleporter');
+        const regex = config.get('wordMatchRegex', /[a-zA-Z0-9]{2,}/);
+        const matchRegex = RegExp(regex, 'g');
         const line = this.window.activeTextEditor?.document.lineAt(lineNumber);
         let word;
         if (line) {
-            while ((word = this.matchRegex.exec(line?.text)) !== null) {
+            while ((word = matchRegex.exec(line?.text)) !== null) {
                 const wordLastIndex = word.index + word[0].length;
                 const code = await svgCodes[svgCodes.length - 1];
                 svgCodes.pop();
@@ -24,9 +26,14 @@ export class WordTeleporterExtension extends Base {
                     renderOptions: {
                         after: {
                             contentText: code,
-                            color: '#000000',
-                            backgroundColor: '#FFFFFF',
-                            fontWeight: 'bold',
+                            color: config.get("hintColor"),
+                            backgroundColor: config.get("hintBackgroundColor"),
+                            fontWeight: config.get("hintFontweight"),
+                            borderStyle: config.get("hintBorderStyle"),
+                            borderColor: config.get("hintBorderColor"),
+                            borderRadius: config.get("hintBorderRadius"),
+                            fontStyle: config.get("hintFontStyle"),
+                            opacity: config.get("hintOpacity")
                         },
                     },
                 });
