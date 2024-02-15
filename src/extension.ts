@@ -6,14 +6,12 @@ export async function activate(context: vscode.ExtensionContext) {
 	const wt = new WordTeleporter();
 	const lt = new LineTeleporter();
 
-	// Word Teleporter
 	let wordTeleporter = vscode.commands.registerCommand('teleporter.wordTeleporter', () => {
 		if (!wt.isModeOn && !lt.isModeOn) {
 			wt.run();
 		}
 	});
 
-	// Line Teleporter
 	let lineTeleporter = vscode.commands.registerCommand('teleporter.lineTeleporter', () => {
 		if (!wt.isModeOn && !lt.isModeOn) {
 			lt.run();
