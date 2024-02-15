@@ -1,7 +1,7 @@
 {
   "name": "teleporter",
-  "displayName": "teleporter",
-  "description": "teleport the mouse cursor anywhere you want",
+  "displayName": "Teleporter",
+  "description": "Teleport the mouse cursor anywhere you want",
   "version": "1.0.0",
   "publisher": "maltarouti",
   "icon":"images/icon.png",
