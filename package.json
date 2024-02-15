@@ -3,6 +3,7 @@
   "displayName": "teleporter",
   "description": "teleport the mouse cursor anywhere you want",
   "version": "1.0.0",
+  "icon":"images/icon.png",
   "engines": {
     "vscode": "^1.86.0"
   },
