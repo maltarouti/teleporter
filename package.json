@@ -2,7 +2,7 @@
   "name": "teleporter",
   "displayName": "Teleporter",
   "description": "Teleport the mouse cursor anywhere you want",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "maltarouti",
   "icon":"images/icon.png",
   "engines": {
@@ -90,6 +90,18 @@
       {
         "command": "teleporter.lineTeleporter",
         "title": "Line Teleporter"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "teleporter.wordTeleporter",
+        "key": "Ctrl+T Ctrl+J",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "teleporter.lineTeleporter",
+        "key": "Ctrl+T Ctrl+L",
+        "when": "editorTextFocus"
       }
     ]
   },
