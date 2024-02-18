@@ -17,7 +17,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		teleporter.run();
 	}
 
-
 	async function stop() {
 		for (var t of teleporters) {
 			if (t.isModeOn) {

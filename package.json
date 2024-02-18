@@ -2,7 +2,7 @@
   "name": "teleporter",
   "displayName": "Teleporter",
   "description": "Teleport the mouse cursor anywhere you want",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "maltarouti",
   "icon":"images/icon.png",
   "engines": {
@@ -105,8 +105,7 @@
       },
       {
         "command": "teleporter.cancelTeleporting",
-        "key": "escape",
-        "when": "editorTextFocus"
+        "key": "escape"
       }
     ]
   },
