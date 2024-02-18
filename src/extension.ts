@@ -3,20 +3,32 @@ import { WordTeleporterExtension as WordTeleporter } from './cursorTeleporter/wo
 import { LineTeleporterExtension as LineTeleporter } from './cursorTeleporter/lineTeleporter';
 
 export async function activate(context: vscode.ExtensionContext) {
+
 	const wt = new WordTeleporter();
 	const lt = new LineTeleporter();
+	const teleporters = [wt, lt];
 
-	let wordTeleporter = vscode.commands.registerCommand('teleporter.wordTeleporter', () => {
-		if (!wt.isModeOn && !lt.isModeOn) {
-			wt.run();
+	async function start(teleporter: any) {
+		for (var t of teleporters) {
+			if (t.isModeOn) {
+				return;
+			}
 		}
-	});
+		teleporter.run();
+	}
 
-	let lineTeleporter = vscode.commands.registerCommand('teleporter.lineTeleporter', () => {
-		if (!wt.isModeOn && !lt.isModeOn) {
-			lt.run();
+
+	async function stop() {
+		for (var t of teleporters) {
+			if (t.isModeOn) {
+				t.stop();
+				return;
+			}
 		}
-	});
+	}
 
-	context.subscriptions.push(wordTeleporter, lineTeleporter);
+	let wordTeleporter = vscode.commands.registerCommand('teleporter.wordTeleporter', () => { start(wt); });
+	let lineTeleporter = vscode.commands.registerCommand('teleporter.lineTeleporter', () => { start(lt); });
+	let cancelTeleporting = vscode.commands.registerCommand('teleporter.cancelTeleporting', stop);
+	context.subscriptions.push(wordTeleporter, lineTeleporter, cancelTeleporting);
 }

@@ -1,10 +1,21 @@
 import * as vscode from 'vscode';
 
 
-export class Base {
+export class CursorTeleporterBase {
     window = vscode.window;
+    disposable: vscode.Disposable | null = null;
+    decorationType = vscode.window.createTextEditorDecorationType({});
     maximumSizeOfMatches = 26 * 26;
     isModeOn = false;
+
+    async stop() {
+        if (this.isModeOn) {
+            const activeEditor = this.window.activeTextEditor;
+            activeEditor?.setDecorations(this.decorationType, []);
+            this.disposable?.dispose();
+            this.isModeOn = false;
+        }
+    }
 
     async decorate(lineNumber: number,
         svgDecorations: object[],
@@ -31,10 +42,8 @@ export class Base {
             // decoration data
             var svgCodes = await this.getSvgCodes();
             var svgPromises: Promise<string>[] = svgCodes.map(code => Promise.resolve(code));
-
             var svgDecorations: any[] = [];
             var positions: { [key: string]: any } = {};
-            var decorationType = vscode.window.createTextEditorDecorationType({});
 
             // decorate current line
             await this.decorate(currentLine, svgDecorations, positions, svgPromises);
@@ -70,9 +79,9 @@ export class Base {
 
             // listen to the user input
             if (svgDecorations.length) {
-                activeEditor.setDecorations(decorationType, svgDecorations);
+                activeEditor.setDecorations(this.decorationType, svgDecorations);
                 var character: string | null = null;
-                const typingEventDisposable = vscode.commands.registerCommand('type', args => {
+                this.disposable = vscode.commands.registerCommand('type', args => {
 
                     var text: string = args.text;
                     if (text.search(/[a-z]/i) === -1) {
@@ -97,8 +106,8 @@ export class Base {
                         activeEditor.revealRange(activeEditor.selection, reviewType);
                     }
 
-                    activeEditor.setDecorations(decorationType, []);
-                    typingEventDisposable.dispose();
+                    activeEditor.setDecorations(this.decorationType, []);
+                    this.disposable?.dispose();
                     this.isModeOn = false;
                 });
             }

@@ -1,17 +1,14 @@
 import * as vscode from 'vscode';
-import { Base } from './base';
+import { CursorTeleporterBase } from './base';
 
 
-export class LineTeleporterExtension extends Base {
+export class LineTeleporterExtension extends CursorTeleporterBase {
     window = vscode.window;
-    maximumSizeOfMatches = 26 * 26;
-    isModeOn = false;
 
     async decorate(lineNumber: number,
         svgDecorations: object[],
         positions: { [key: string]: any } = {},
         svgCodes: Promise<string>[]): Promise<undefined> {
-
         const config = vscode.workspace.getConfiguration('teleporter');
         var line = this.window.activeTextEditor?.document.lineAt(lineNumber);
         if (line) {

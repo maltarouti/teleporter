@@ -102,6 +102,11 @@
         "command": "teleporter.lineTeleporter",
         "key": "Ctrl+T Ctrl+L",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "teleporter.cancelTeleporting",
+        "key": "escape",
+        "when": "editorTextFocus"
       }
     ]
   },

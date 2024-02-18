@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
-import { Base } from './base';
+import { CursorTeleporterBase } from './base';
 
-export class WordTeleporterExtension extends Base {
+
+export class WordTeleporterExtension extends CursorTeleporterBase {
     window = vscode.window;
 
     async decorate(
@@ -10,7 +11,6 @@ export class WordTeleporterExtension extends Base {
         positions: { [key: string]: any } = {},
         svgCodes: Promise<string>[]
     ): Promise<undefined> {
-
         const config = vscode.workspace.getConfiguration('teleporter');
         const regex = config.get('wordMatchRegex', /[a-zA-Z0-9]{2,}/);
         const matchRegex = RegExp(regex, 'g');
