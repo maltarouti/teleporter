@@ -8,7 +8,7 @@ export class CursorTeleporterBase {
     maximumSizeOfMatches = 26 * 26;
     isModeOn = false;
 
-    async stop() {
+    async dispose() {
         if (this.isModeOn) {
             const activeEditor = this.window.activeTextEditor;
             activeEditor?.setDecorations(this.decorationType, []);

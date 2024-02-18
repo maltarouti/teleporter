@@ -21,7 +21,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	async function stop() {
 		for (var t of teleporters) {
 			if (t.isModeOn) {
-				t.stop();
+				t.dispose();
 				return;
 			}
 		}
