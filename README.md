@@ -10,9 +10,10 @@ Teleporter is a Visual Studio Code extension that allows you to teleport your cu
 
 Teleporter currently offers two teleporting features: teleport by word match and teleport by line. When you initiate the command, two letter decorations will appear. Simply type the two-letter code to move the cursor to the desired position.
 
-* teleporter.lineTeleporter: Creates decorations for words in the area around your cursor.
-* teleporter.wordTeleporter: Creates decorations for non-empty lines in the area around your cursor.
+* `teleporter.lineTeleporter`: Creates decorations for words in the area around your cursor.
+* `teleporter.wordTeleporter`: Creates decorations for non-empty lines in the area around your cursor.
 
+Note: you can click `ESC` to cancel and hide the letters. You can also configure a special key for that by changing the key binding of `teleporter.cancelTeleporter`
 
 You can set up keybindings for each of these commands by referring to the [Visual Studio Code Keybindings documentation](https://code.visualstudio.com/docs/getstarted/keybindings)
 
